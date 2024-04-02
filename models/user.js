@@ -41,6 +41,39 @@ class User{
           .updateOne({_id:new ObjectId(this._id)},{$set:{cart: updatedCart}});
     
   }
+
+  getCart(){
+    const db = getDb();
+    const productIds = this.cart.items.map(i =>{
+      return i.productId;
+    })
+    return db.collection('products')
+             .find({_id: {$in : productIds}})
+             .toArray()
+             .then(products =>{
+              return products.map(p =>{
+                return {...p,
+                quantity : this.cart.items.find(i => {
+                  return i.productId.toString() === p._id.toString();
+                }).quantity
+              };
+              });
+             })
+  }
+
+  deleteCartItem(prodId){
+    const db = getDb();
+    let updatedCartItems = this.cart.items.filter( products =>{
+      return prodId.toString() !== products.productId.toString();
+    })
+    return db.collection('users')
+              .updateMany(
+                {},
+                { $set: { cart: { items: updatedCartItems } } }
+  );
+             
+
+  }
   static findById(userId)
   {
     const db = getDb();
