@@ -20,7 +20,8 @@ exports.postAddProduct = (req, res, next) => {
     title:title,
     price:price,
     description:description,
-    imageUrl :imageUrl
+    imageUrl :imageUrl,
+    userId: req.user
   });
   product
     .save()
@@ -68,7 +69,8 @@ exports.postEditProduct = (req, res, next) => {
       title: updatedTitle,
       price: updatedPrice,
       description: updatedDesc,
-      imageUrl: updatedImageUrl
+      imageUrl: updatedImageUrl,
+      userId: req.user
     } 
   )
       .then(result => {
