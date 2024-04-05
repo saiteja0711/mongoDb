@@ -1,31 +1,30 @@
-
 const Users = require('../models/users');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-function generateToken(id ,ispremium ){
-    return jwt.sign({userId:id , ispremium},'secretkey')
+function generateToken(_id ,isPremium ){
+    return jwt.sign({userId:_id , isPremium:isPremium},'secretkey')
 }
 
 async function loginUser (req, res, next) {
     const { email, password } = req.body;
 
     try {
-        const user = await Users.findOne({ where: { email: email } });
+        const user = await Users.find( { 'email': email } );
         
         if (!user) {
             return res.status(404).json({ error: 'User not found!' });
         }
+        console.log(user);
 
-        bcrypt.compare(password, user.password, (err, result) => {
+        bcrypt.compare(password, user[0].password, (err, result) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: 'Internal server error' });
             }
 
             if (result) {
-                
-                return res.json({ success: 'User logged in successfully!',token:generateToken(user.id, user.ispremium)});
+                return res.json({ success: 'User logged in successfully!',token:generateToken(user[0]._id, user[0].isPremium)});
             } else {
                 return res.status(401).json({ error: 'Wrong password!' });
             }

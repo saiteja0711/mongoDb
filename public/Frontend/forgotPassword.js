@@ -5,10 +5,12 @@ form.addEventListener('submit', async function(event) {
 
     const email = document.getElementById('email').value;
     try {
-        const response = await axios.post('http://3.107.41.242:3000/password/forgotPassword', {
+        const response = await axios.post('http://localhost:3000/password/forgotPassword', {
             email: email,
         });
        console.log(response);
+       alert("Email sent Succesfully")
+       window.location.href = 'login.html';
         
     } catch (error) {
             console.error(error);

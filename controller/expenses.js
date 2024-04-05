@@ -1,33 +1,35 @@
+const  mongoose = require('mongoose');
 const Expense = require('../models/expenses');
 const User = require('../models/users');
 const DownloadedFiles = require('../models/downloadedfiles')
-const sequelize = require('../util/database');
 const S3services = require('../services/S3services');
 const UserServices = require('../services/userservices');
 
 const addExpense = async (req, res, next) => {
-    const t = await sequelize.transaction();
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try{
-    const expenseAmount = req.body.expenseAmount;
-    const expenseDescription = req.body.expenseDescription;
-    const expenseCategory = req.body.expenseCategory;
-  
-    let exp=await Expense.create({
+       const { expenseAmount, expenseDescription, expenseCategory } = req.body;
+
+       const expense = new Expense({
         expenseAmount: expenseAmount,
         expenseDescription: expenseDescription,
         expenseCategory: expenseCategory,
-        userId: req.user.id},
-        {transaction:t}
-        );
-        const totalExpense = Number(req.user.totalExpense) + Number(exp.expenseAmount);
-        let user=await User.update(
-            { totalExpense: totalExpense} ,
-            {where: { id: req.user.id } ,transaction :t}
-        );
-        await t.commit();
-        res.status(200).json({ success: 'Successfully added' });
-    } catch(err) {
-        await t.rollback();
+        userId: req.user._id
+         });
+       await expense.save({session});
+
+       const user = await User.findById(req.user._id);
+       user.totalExpense += Number(expenseAmount);
+       await user.save({ session });
+
+       await session.commitTransaction();
+       session.endSession();
+       res.status(200).json({ success: 'Successfully added' });
+    } 
+    catch(err) {
+        await session.abortTransaction();
+        session.endSession();
         console.log(err);
         res.status(500).json({ error: 'Failed to add expense' });
     }
@@ -37,18 +39,18 @@ const getExpense = async(req,res,next)=> {
     try{
     const page = Number(req.query.Page);
     const itemPerPage = Number(req.query.limit);
-    let expenses = await Expense.findAndCountAll({
-        where :{userId:req.user.id},
-        limit:itemPerPage,
-        offset:(page-1)*itemPerPage
+    let expenses = await Expense.find({'userId':req.user.id})
+                                 .limit(itemPerPage)
+                                 .skip((page-1)*itemPerPage)
+                                 .exec()
 
-    });
+    
     console.log(expenses);
-    const totalItems = expenses.count;
+    const totalItems = await Expense.countDocuments({'userId':req.user.id})
     res.json({
-        expenses:expenses.rows,
+        expenses:expenses,
        pageData:{ 
-        currentPage:page, //currentPage
+        currentPage:page, 
         nextPage :Number(page)+1,
         previousPage:Number(page)-1,
         hasNextPage:itemPerPage * page < totalItems,
@@ -65,17 +67,18 @@ catch (err){
 
   const downloadExpenses =  async(req, res,next) => {
     try {
-    const expenses =  await Expense.findAll({where:{userId : req.user.id}});
+    const expenses =  await Expense.find({userId : req.user._id});
     //console.log(expenses);
     const stringifiedExpenses = JSON.stringify(expenses);
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const filename = `Expenses${userId}/${new Date()}.txt`;
     const fileURL = await S3services.uploadToS3(stringifiedExpenses,filename);
-    await DownloadedFiles.create({
-        fileURL:fileURL,
-        userId:userId
-    })
+    const download =  new DownloadedFiles({
+                     fileURL:fileURL,
+                     userId:userId
+                     });
+    await download.save();
     
     res.status(200).json ({ fileURL, success: true});
     }
@@ -90,22 +93,26 @@ catch (err){
   
 
 const postDeleteExpense = async (req, res,next) => {
-    const t =await sequelize.transaction();
+    const session =await mongoose.startSession();
+      session.startTransaction();
    try {
     const expenseId = req.params.id;
-    let expense  =await Expense.findByPk(expenseId)
-     let destroy=await expense.destroy({where:{userId:req.user.id},transaction:t});
+    const expense  =await Expense.findById(expenseId)
+    const expenseAmount = Number(expense.expenseAmount);
+     await expense.deleteOne({session});
      console.log("Deleted Sucessfully");
-     const totalExpense = Number(req.user.totalExpense)-Number(expense.expenseAmount);
-     let user=await User.update(
-        { totalExpense: totalExpense} ,
-        {where: { id: req.user.id },transaction:t}
-    );
-     await t.commit();
-     return res.json({ success: 'succesfully deleted' });
+     
+     const user = await User.findById(req.user._id);
+     user.totalExpense -= expenseAmount;
+     await user.save({ session });
+
+     await session.commitTransaction();
+     session.endSession();
+     return res.json({ success: 'Successfully Deleted' });
    
      }catch(err){
-        await t.rollback();
+        await session.abortTransaction();
+        session.endSession();
          console.log(err)
          return res.status(500).json({success:false,error:err})
    

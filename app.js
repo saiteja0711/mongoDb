@@ -2,17 +2,12 @@ const path = require('path');
 const fs = require("fs");
 const express = require('express');
 const bodyParser = require('body-parser');
-//const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const sequelize = require('./util/database');
-const cors = require('cors')
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-const user = require('./models/users');
-const expenses = require('./models/expenses');
-const order = require('./models/order');
-const forgotPasswordRequests = require('./models/forgotPasswordRequests');
-const DownloadedFiles = require('./models/downloadedfiles')
 
 const userRouter = require('./routes/users');
 const expenseRouter = require('./routes/expenses');
@@ -31,8 +26,6 @@ const accessLogStream=fs.createWriteStream(
 
 
 app.use(cors())
-//app.use(helmet())
-
 app.use(compression());
 app.use(morgan('combined',{stream:accessLogStream}));
 app.use(bodyParser.json());
@@ -40,21 +33,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-// app.get('/', function(req, res, next) {
-//     res.sendFile(path.join(__dirname, 'views','index.html'));
-//     });
-
-// app.get('/login', function(req, res, next) {
-//     res.sendFile(path.join(__dirname, 'views','login.html'));
-// });
-
-// app.get('/expenses', function(req, res, next) {
-//     res.sendFile(path.join(__dirname, 'views','expenses.html'));
-// });
-
-// app.get('/forgotPassword', function(req, res, next) {
-//     res.sendFile(path.join(__dirname, 'views','forgotPassword.html'));
-// });
 
 app.use('/user',userRouter);
 app.use('/expenses',expenseRouter);
@@ -63,29 +41,16 @@ app.use('/premium',premium)
 app.use('/password',forgotPassword)
 
 app.use((req,res)=>{
-    console.log('url',req.url)
+    //console.log('url',req.url)
     res.sendFile(path.join(__dirname,`public/Frontend/${req.url}`))
 })
 
-user.hasMany(expenses);
-expenses.belongsTo(user);
-
-user.hasMany(order);
-order.belongsTo(user)
-
-user.hasMany(forgotPasswordRequests);
-forgotPasswordRequests.belongsTo(user);
-
-user.hasMany(DownloadedFiles);
-DownloadedFiles.belongsTo(user);
-
-
-sequelize
-// .sync({force:true})
-.sync()
-.then (result =>{
-   app.listen(3000);
-})
-.catch(err => {
-    console.log(err);
-});
+mongoose
+      .connect('mongodb+srv://Teja:Teja8081@cluster0.rlclnpx.mongodb.net/expenseTraker')
+      .then (result => {
+        console.log("Connected!")
+        app.listen(3000)
+      })
+      .catch(err => {
+        console.log(err)
+      });

@@ -13,14 +13,16 @@ let form = document.getElementById('form')
                 password: password
             }
             let parentNode = document.getElementById('errorMessages');
+            let Message = document.getElementById('message');
+            Message.innerHTML='';
             parentNode.innerHTML = '';
                 
             try {
                 
-                let promise = await axios.post('http://3.107.41.242:3000/user/signin', obj);
+                let promise = await axios.post('http://localhost:3000/user/signin', obj);
                 if (promise.status == 201) {
                     let childHTML = '<h3>Registered Successfully</h3>';
-                    parentNode.innerHTML = parentNode.innerHTML + childHTML;
+                    Message.innerHTML = parentNode.innerHTML + childHTML;
                     
                 } 
             } catch (err) {

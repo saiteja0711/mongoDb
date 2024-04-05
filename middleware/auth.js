@@ -7,10 +7,9 @@ const authenticate = (req,res,next) => {
         const decodedToken = jwt.verify(token, 'secretkey');
         console.log('decodedToken >>>>>>>>', decodedToken);
         const userId =decodedToken.userId;
-        User.findByPk(userId)
+        User.findById(userId)
         .then(user => {
             req.user=user;
-            
             next()
         })
         .catch((err)=>{

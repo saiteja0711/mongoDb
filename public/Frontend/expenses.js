@@ -3,13 +3,12 @@ let expenseList = document.getElementById('expenseList');
 let table = document.getElementById("myTable");
 let pagination = document.getElementById("pagination");
 let selectElement= document.getElementById("pagesize")
+let Premium= document.getElementById("isPremium")
+let Leaderboard = document.getElementById('leaderboard')
 let pageSize=0
  
 const token = localStorage.getItem("token");
 form.addEventListener('submit', addExpense);
-
-
-
 
 function pagelimit() {
     const pageSizeElement = document.getElementById('pagesize');
@@ -50,7 +49,7 @@ async function addExpense(e) {
         expenseCategory: expenseCategory
     };
     try {
-        let response = await axios.post('http://3.107.41.242:3000/expenses/addexpenses', obj,{
+        let response = await axios.post('http://localhost:3000/expenses/addexpenses', obj,{
             headers: { Authorization: token },
           });
         if (response.data.success) {
@@ -65,23 +64,31 @@ async function addExpense(e) {
 
 function showpremium(){
     document.getElementById("rzp-button1").style.display = 'none';
-    const listItem = document.createElement('li');
-    listItem.textContent = "You are a premium user";
-    
-    //show leader board
+    const textNode = document.createTextNode(`You are a Premium User`);
+ 
     const inputElement = document.createElement('input')
     inputElement.type="button"
     inputElement.value= "Show Leaderboard"
-    listItem.appendChild(inputElement);
-    document.getElementById('content').appendChild(listItem);
+    inputElement.classList.add("dynamicBtn");
+    Premium.appendChild(textNode)
+    document.getElementById('content').appendChild(inputElement);
     
     inputElement.onclick = async()=>{
-        const userLeaderboard = await axios.get('http://3.107.41.242:3000/premium/showleaderboard')
-        let Leaderboard = document.getElementById('leaderboard')
+        const userLeaderboard = await axios.get('http://localhost:3000/premium/showleaderboard')
+       
+        Leaderboard.innerHTML ='';
         Leaderboard.innerHTML+=`<h1>Leaderboard<h1>`
-        console.log(userLeaderboard.data[0].id)
+        console.log(userLeaderboard)
+        leaderboardHeader();
         userLeaderboard.data.forEach((userDetails) =>{
-          Leaderboard.innerHTML+=`<li>Name-${userDetails.name} TotalExpense-${userDetails.totalExpense}</li>`
+            var row = Leaderboard.insertRow();
+
+            var cell1 = row.insertCell(-1);
+            var cell2 = row.insertCell(-1);
+
+            cell1.innerHTML = `${userDetails.name}`;
+            cell2.innerHTML = `${userDetails.totalExpense}`;
+          
         })
     }
 
@@ -91,7 +98,7 @@ function showpremium(){
 
 async function get(page){
     try{
-        const response = await axios.get(`http://3.107.41.242:3000/expenses/details?Page=${page}&limit=${pageSize}`,{
+        const response = await axios.get(`http://localhost:3000/expenses/details?Page=${page}&limit=${pageSize}`,{
             headers: { Authorization: token },
           })
         console.log(response);
@@ -140,12 +147,14 @@ async function displayExpenses(expense) {
     try {
        
         console.log('feteched expenses are>>>>>',expense);
+       
         table.innerHTML='';
+        if(expense!=null){
         tableHeader();
         expense.forEach(expenses => {
             var row = table.insertRow();
             row.className = "row";
-            row.id = `${expenses.id}`;
+            row.id = `${expenses._id}`;
             var cell1 = row.insertCell(-1);
             var cell2 = row.insertCell(-1);
             var cell3 = row.insertCell(-1);
@@ -154,8 +163,8 @@ async function displayExpenses(expense) {
             cell1.innerHTML = `${expenses.expenseCategory}`;
             cell2.innerHTML = `${expenses.expenseDescription}`;
             cell3.innerHTML = `${expenses.expenseAmount}`;
-            cell4.innerHTML = `<input type="button" value="Delete Expense" class="delete"></input>`;
-        })
+            cell4.innerHTML = `<input type="button" id="dynamicBtn" value="Delete Expense" class="delete"></input>`;
+        })}
 
         // Add event listener for delete buttons using event delegation
         table.addEventListener('click', async (e) => {
@@ -164,7 +173,7 @@ async function displayExpenses(expense) {
                 let id = e.target.parentElement.parentElement.id;
                 
                 try {
-                    await axios.delete(`http://3.107.41.242:3000/expenses/delete/${id}`, {
+                    await axios.delete(`http://localhost:3000/expenses/delete/${id}`, {
                         headers: { Authorization: token }
                     });
                     row.remove();
@@ -181,10 +190,11 @@ async function downloadbtn() {
     const btn = document.createElement("input");
     btn.type = "button";
     btn.value = "Download";
+    btn.classList.add("dynamicBtn");
     const div = document.getElementById("premium");
     div.appendChild(btn);
     btn.onclick = async () => {
-      let promise = await axios.get("http://3.107.41.242:3000/expenses/download",{headers:{Authorization:token}});
+      let promise = await axios.get("http://localhost:3000/expenses/download",{headers:{Authorization:token}});
       console.log(promise)
       if(promise.status==200){
         let a=document.createElement('a')
@@ -211,51 +221,61 @@ function parseJwt(token) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    
-    
-    
+    const page = 1
     if (!token) {
       console.error('Token not found. Please log in.');
       return;
     }
     const decoded = parseJwt(token);
     console.log('Decoded token:', decoded);
-    const isPremium = decoded.ispremium;
+    const isPremium = decoded.isPremium;
 
-    if (isPremium) {
+    if (isPremium)
+     {
       showpremium();
-      
       }
-     const page = 1
-      get(page);
+     
+    get(page);
     document.getElementById('rzp-button1').onclick = buyPremiumHandler;
   });
  
-  function tableHeader(){
-    
+  function tableHeader()
+  {
     var row = table.insertRow();
     var cell1 = row.insertCell(-1);
     var cell2 = row.insertCell(-1);
     var cell3 = row.insertCell(-1);
     var cell4 = row.insertCell(-1);
+    row.classList.add('tableHeader');
+    cell1.innerHTML = "<b> Category <b>";
+    cell2.innerHTML = "<b> Description<b>";
+    cell3.innerHTML = "<b> Amount <b>";
+    cell4.innerHTML = "<b> Changes <b>";
 
-    cell1.innerHTML = "<b><pre> Category </pre<b>";
-    cell2.innerHTML = "<b><pre> Description </pre><b>";
-    cell3.innerHTML = "<b><pre>  Amount </pre><b>";
-    cell4.innerHTML = "<b><pre> Changes </pre><b>";
+  }
 
+  function leaderboardHeader()
+  {
+    var row = Leaderboard.insertRow();
+    var cell1 = row.insertCell(-1);
+    var cell2 = row.insertCell(-1);
+
+    row.classList.add('tableHeader');
+
+    cell1.innerHTML = "<b>Name <b>";
+    cell2.innerHTML = "<b>Total Expense<b>";
   }
   
 
 async function buyPremiumHandler(e) {
     try {
-        const promise = await axios.get('http://3.107.41.242:3000/purchase/premiumpay', { headers: { 'Authorization': token } });
+        const promise = await axios.get('http://localhost:3000/purchase/premiumpay', { headers: { 'Authorization': token } });
         console.log('promise is', promise);
         let options = {
             "key": promise.data.key_id,
             "order_id": promise.data.order.id,
             handler: async function (promise) {
-                const res= await axios.post('http://3.107.41.242:3000/purchase/updatetransaction', {
+                const res= await axios.post('http://localhost:3000/purchase/updatetransaction', {
                     order_id: options.order_id,
                     payment_id: options.key
                 }, { headers: { "Authorization": token } });
@@ -265,11 +285,8 @@ async function buyPremiumHandler(e) {
                 localStorage.setItem('token', res.data.token);
                 
                 showpremium();
-                
-                
             }
         };
-
         const rzp1 = new Razorpay(options);
         rzp1.open();
         e.preventDefault();

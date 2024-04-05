@@ -4,20 +4,147 @@
   <meta charset="UTF-8">
   <title>Add Expenses</title>
 </head>
-<body>
-  <style>
-    table,td{
-        border: 1px solid black;
-        border-collapse: collapse;
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center; 
+  }
+  h1 {
+    margin-top: 20px;
+    text-align: center;
+  }
+  form {
+    width: 50%;
+    margin: 0 auto;
+    text-align: left; 
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  input[type="number"],
+  input[type="text"],
+  select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  
+  button[type="submit"],
+  button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 5px; 
+    
+  }
+  button[type="submit"]:hover,
+  button:hover {
+    background-color: #45a049;
+  }
+ 
+  table {
+    width: 80%;
+    margin: 0 auto; 
+    border-collapse: collapse;
+    
+  }
+  
+  th, td {
+    border: 2px solid #5a5a5a;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  #pagination {
+    text-align: center;
+    margin-top: 20px;
+  }
+  #leaderboard {
+    list-style: none;
+    padding: 0;
+    margin: 20px auto;
+    max-width: 50%;
+  }
+  #leaderboard li {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+  }
+  #expenseList {
+    width: 80%;
+    margin: 20px auto;
+  }
+  
+  
+  #pagesize {
+    font-size: 14px;
+    width: auto;
+    padding: 5px;
+  }
+  #expensesnumber {
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .tableHeader{
+  background-color: rgb(6, 134, 91);
+    color: white;
+
+}
+#myTable tr:nth-child(even) {
+        background-color: #f2f2f2;
     }
-    button {
-    margin-bottom: 10px; /* Add margin below each button */
+#leaderboard tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+  .dynamicBtn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 5px; 
+    
 }
 
+.dynamicBtn:hover {
+    background-color: #45a049;
+}
+#dynamicBtn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 5px; 
+    
+}
+
+#dynamicBtn:hover {
+    background-color: #45a049;
+}
 </style>
+<body>
   <h1>Add Expenses</h1>
-  
+  <div id="isPremium"></div>
   <form id="expenseForm">
+    
     <label for="expenseAmount">Expense Amount:</label>
     <input type="number" id="expenseAmount" name="expenseAmount" required><br><br>
     
@@ -30,22 +157,25 @@
       <option value="fuel">fuel</option>
       <option value="electricity">electricity</option>
       <option value="movie">movie</option>
+      <option value="other"></option>
       
     </select><br><br>
     
     <button type="submit">Add Expense</button>
   </form>
-  <br>
-  <button id="rzp-button1">Buy Premium</button> <br>
+  
+  <button id="rzp-button1">Buy Premium</button> 
   
   <div id="content"></div>
-
+  <br>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <div id="premium"></div>
   <div id="expenseList"></div>
   <h1> Expenses </h1>
-  <div style="display: flex; align-items: center;">
-    <h3 style="margin-right: 10px;">Number of Expenses to be shown</h3>
+  <div id="expensesnumber">
+ 
+    <h3 >Number of Expenses to be shown</h3>
+    <pre> </pre>
     <select id="pagesize">
         <option value="2">2</option>
         <option value="4">4</option>
@@ -57,8 +187,9 @@
 
   <table id="myTable"></table>
   <div id="pagination"></div>
-  <ul id="leaderboard"></ul> 
-  
+  <table id="leaderboard"></table>
+  <!-- <ul id="leaderboard"></ul> 
+   -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js" integrity="sha512-aoTNnqZcT8B4AmeCFmiSnDlc4Nj/KPaZyB5G7JnOnUEkdNpCZs1LCankiYi01sLTyWy+m2P+W4XM+BuQ3Q4/Dg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   
   <script src="expenses.js"></script>

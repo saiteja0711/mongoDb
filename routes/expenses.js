@@ -10,7 +10,7 @@ const userauthenticate = require('../middleware/auth')
 
  router.get('/details',userauthenticate.authenticate,expenses.getExpense);
  
- router.get('/download', userauthenticate.authenticate,expenses.downloadExpenses)
+router.get('/download', userauthenticate.authenticate,expenses.downloadExpenses)
 
  router.delete('/delete/:id',userauthenticate.authenticate,expenses.postDeleteExpense)
 
